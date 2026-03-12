@@ -1,66 +1,116 @@
-import requests
-from requests.exceptions import RequestException
-from urllib.parse import urlparse, urljoin
-from bs4 import BeautifulSoup
+# -*- coding: utf-8 -*-
+"""
+NTNU-Web-Carwler / web-crawler-v6.py
+======================================
+爬取 NTNU（臺師大）校內指定頁面的所有外連 URL，
+解析各 Domain 對應的 IP 位址，並依 IP 分組輸出至文字檔。
+
+環境需求：pip install requests beautifulsoup4
+作者：NTNU-NA Team
+"""
+
+from __future__ import annotations
+
 import socket
 from collections import defaultdict
+from urllib.parse import urlparse, urljoin
 
-# 目標網址
-urls = [
+import requests
+from requests.exceptions import RequestException
+from bs4 import BeautifulSoup
+
+# 目標爬取網址清單
+TARGET_URLS: list[str] = [
     "https://www.ntnu.edu.tw/static.php?id=colleges",
     "https://www.ntnu.edu.tw/static.php?id=adm",
-    "https://www.ntnu.edu.tw/static.php?id=faculty"
+    "https://www.ntnu.edu.tw/static.php?id=faculty",
 ]
 
-output_file = "output.txt"
+# 輸出檔案路徑
+OUTPUT_FILE: str = "output.txt"
 
-# 儲存所有唯一的網址
-unique_urls = set()
-ip_to_domains = defaultdict(set)  # 用 set 避免重複網址
+# 只保留此 Domain 下的 URL
+FILTER_DOMAIN: str = "ntnu.edu.tw"
 
-# 開啟輸出檔案
-with open(output_file, "w", encoding="utf-8") as file:
-    for target_url in urls:
+
+def collect_ntnu_urls(target_urls: list[str]) -> set[str]:
+    """
+    從多個目標頁面爬取所有屬於 NTNU 域名的 URL。
+
+    Args:
+        target_urls: 要爬取的目標頁面 URL 清單。
+
+    Returns:
+        所有唯一的 NTNU URL 集合。
+    """
+    unique_urls: set[str] = set()
+
+    for target_url in target_urls:
         try:
-            # 發送請求並獲取網頁內容
             response = requests.get(target_url, timeout=5)
-            response.raise_for_status()  # 檢查是否返回 4xx 或 5xx 錯誤
+            response.raise_for_status()
 
-            # 解析 HTML 原始碼
-            soup = BeautifulSoup(response.text, 'html.parser')
-
-            # 找出所有 <a> 標籤的連結
-            links = soup.find_all('a', href=True)
+            soup = BeautifulSoup(response.text, "html.parser")
+            links = soup.find_all("a", href=True)
 
             for link in links:
-                link_url = link['href']
-                
-                # 使用 urljoin 處理相對路徑
-                link_url = urljoin(target_url, link_url)
-
-                # 只保留來自 ntnu.edu.tw 的網址
-                if "ntnu.edu.tw" in link_url:
+                link_url = urljoin(target_url, link["href"])
+                if FILTER_DOMAIN in link_url:
                     unique_urls.add(link_url)
 
         except RequestException:
-            continue  # 忽略錯誤並繼續處理下一個網址
+            continue  # 忽略錯誤並處理下一個網址
 
-    # 解析 Domain 並分組儲存
-    for url in unique_urls:
+    return unique_urls
+
+
+def group_urls_by_ip(urls: set[str]) -> dict[str, set[str]]:
+    """
+    將 URL 集合根據 DNS 解析的 IP 位址進行分組。
+
+    Args:
+        urls: 要解析的 URL 集合。
+
+    Returns:
+        以 IP 為 key、URL 集合為 value 的字典。
+        解析失敗的 URL 歸入 key "解析失敗"。
+    """
+    ip_to_domains: dict[str, set[str]] = defaultdict(set)
+
+    for url in urls:
         parsed_url = urlparse(url)
-        domain = parsed_url.netloc  # 取得 domain，例如 www.ntnu.edu.tw
-        
+        domain = parsed_url.netloc
         try:
-            # 使用 socket.gethostbyname() 解析 IP
             ip_address = socket.gethostbyname(domain)
-            ip_to_domains[ip_address].add(url)  # 依照 IP 分組（使用 set 避免網址重複）
+            ip_to_domains[ip_address].add(url)
         except socket.gaierror:
-            ip_to_domains["解析失敗"].add(url)  # 如果解析失敗，放入 "解析失敗" 類別
+            ip_to_domains["解析失敗"].add(url)
 
-    # 依 IP 分類輸出（確保每個 IP 只出現一次）
-    for ip, domains in ip_to_domains.items():
-        for domain in sorted(domains):  # 讓網址排序，輸出更整齊
-            file.write(f"#{domain}\n")
-        file.write(f"{ip}\n\n")  # IP 地址換行，分組顯示
+    return ip_to_domains
 
-print(f"URL 檢查完成，結果已保存至 {output_file}")
+
+def write_output(ip_to_domains: dict[str, set[str]], output_file: str) -> None:
+    """
+    將依 IP 分組的 URL 結果寫入文字檔。
+
+    Args:
+        ip_to_domains: 以 IP 為 key、URL 集合為 value 的字典。
+        output_file: 輸出文字檔路徑。
+    """
+    with open(output_file, "w", encoding="utf-8") as f:
+        for ip, domains in ip_to_domains.items():
+            for domain in sorted(domains):
+                f.write(f"#{domain}\n")
+            f.write(f"{ip}\n\n")
+
+
+def main() -> None:
+    """程式主入口：爬取 URL、分組並輸出結果。"""
+    unique_urls = collect_ntnu_urls(TARGET_URLS)
+    ip_to_domains = group_urls_by_ip(unique_urls)
+    write_output(ip_to_domains, OUTPUT_FILE)
+    print(f"URL 檢查完成，結果已保存至 {OUTPUT_FILE}")
+
+
+if __name__ == "__main__":
+    main()

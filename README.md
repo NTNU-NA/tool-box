@@ -87,19 +87,21 @@ aws cloudformation deploy \
 
 ```
 On-Premise-CheckWebServices/
-├── NTNU-ScanIps-Simple/         # 單一 IP 清單的 Web Port 掃描
-│   ├── check_ports.py           # 主要掃描腳本
-│   ├── check_ports.sh           # Shell 啟動腳本
-│   ├── ScanIPs-v1.txt           # 待掃描 IP 清單（範例）
-│   └── ScanIPs-v2.txt           # 待掃描 IP 清單（精簡版）
-├── NTNU-ScanNetworkVlan/        # VLAN/網段 CIDR 批量 Web Port 掃描
-│   ├── check_ports-NetworkSegment-v1.py ~ v8.py   # 歷代版本腳本
-│   ├── check_ports-NetworkSegment-v1.sh ~ v8.sh   # 對應 Shell 腳本
-│   └── ScanNetwork_Vlan-v1.txt  # 待掃描 CIDR 或 IP 清單
-└── NTNU-Web-Carwler/            # NTNU 校內網站 URL 爬蟲
-    ├── web-crawler-v1.py ~ v6.py  # 歷代版本腳本
-    ├── CheckWeb-v1.py ~ v5.py     # 網頁可用性驗證腳本
-    └── output.txt                 # 爬蟲輸出結果
+├── NTNU-ScanIps-Simple/              # 單一 IP 清單的 Web Port 掃描
+│   ├── check_ports.py                # ✅ 最新版掃描腳本
+│   ├── check_ports.sh                # ✅ Shell 啟動腳本
+│   ├── ScanIPs-v1.txt                # 待掃描 IP 清單（完整版）
+│   └── ScanIPs-v2.txt                # 待掃描 IP 清單（精簡版）
+├── NTNU-ScanNetworkVlan/             # VLAN/網段 CIDR 批量 Web Port 掃描
+│   ├── check_ports-NetworkSegment-v8.py  # ✅ 最新版掃描腳本（70+ Port）
+│   ├── check_ports-NetworkSegment-v8.sh  # ✅ Shell 啟動腳本
+│   ├── ScanNetwork_Vlan-v1.txt           # 待掃描 CIDR 或 IP 清單
+│   └── Old/                              # 📦 歷史版本歸檔（v1–v7）
+└── NTNU-Web-Carwler/                 # NTNU 校內網站 URL 爬蟲
+    ├── web-crawler-v6.py             # ✅ 最新版爬蟲腳本
+    ├── CheckWeb-v5.py                # ✅ 最新版網頁可用性驗證腳本
+    ├── output.txt                    # 爬蟲輸出結果
+    └── Old/                          # 📦 歷史版本歸檔（v1–v5 / v1–v4）
 ```
 
 ---
@@ -236,6 +238,60 @@ python web_certificate_check.py
 | example.com | 2024-01-01 00:00:00 | 2025-01-01 23:59:59 |
 
 > ⚠️ **注意**：部分網站因 SSL 設定問題可能抓取失敗，結果顯示 `None`；若憑證已過期，請儘速聯繫網站管理員。
+
+---
+
+## 📋 開發規範
+
+本專案遵循 `.clinerules` 規範，所有貢獻者請務必閱讀並遵守以下規則。
+
+### 語言規範
+
+- 所有文件、README、程式碼註解與 Commit 說明，一律使用**繁體中文**。
+
+### Python 程式規範
+
+| 規範 | 說明 |
+|------|------|
+| 風格 | 遵循 **PEP 8**（縮排 4 空格、行寬 ≤ 79 字元） |
+| 型別標註 | 所有函數必須加入 **Type Hints** |
+| 文件字串 | 所有函數必須有繁體中文 **Docstring**（Google Style） |
+| 入口保護 | 腳本主邏輯須包在 `main()` 函數中，並以 `if __name__ == "__main__":` 呼叫 |
+| 例外處理 | 避免裸露的 `except Exception`，改用具體例外類型 |
+| 常數命名 | 模組層級常數使用全大寫 `SNAKE_CASE` |
+
+### 修改流程規範
+
+修改任何程式碼前，請先確認現有結構與邏輯：
+
+```bash
+# 1. 查看目錄結構
+ls -R
+
+# 2. 讀取要修改的檔案後再動工
+
+# 3. 修改後驗證語法
+python3 -m py_compile <your_script.py>
+```
+
+### Git 提交規範
+
+**嚴禁直接在 `main` 或 `master` 分支 push**，除非有明確授權。
+
+所有 Commit Message 必須遵循 **Conventional Commits** 格式：
+
+```
+<type>(<scope>): <繁體中文說明>
+```
+
+| Type | 說明 | 範例 |
+|------|------|------|
+| `feat` | 新增功能 | `feat(scanner): 新增 CIDR 自動展開功能` |
+| `fix` | 修正 Bug | `fix(crawler): 修正 URL 重複收錄問題` |
+| `docs` | 文件更新 | `docs(readme): 更新開發規範章節` |
+| `refactor` | 重構（不影響功能） | `refactor(cert-check): 加入 Type Hints 與 main() 保護` |
+| `chore` | 維護作業 | `chore: 更新 .clinerules 規範` |
+| `style` | 格式調整（不影響邏輯） | `style: 統一 PEP 8 縮排格式` |
 
 ---
 
