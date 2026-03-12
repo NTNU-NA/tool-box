@@ -189,7 +189,44 @@ python web-crawler-v6.py
 
 ---
 
-## 3. OnPremise-Web_certificate_check
+## 3. CheckWebServices
+
+> 🔍 新版 CheckWebServices 工具集（包含 GVM、Crawler、網段掃描）
+
+### 📁 目錄結構
+
+```
+CheckWebServices/
+├── web-crawler-v6.py                 # ✅ 網站 URL 爬蟲
+├── CheckWeb-v5.py                    # ✅ 網頁關鍵字與可用性檢查 (Selenium)
+├── output.txt                        # 爬蟲輸出結果
+├── Old/                              # 📦 歷史版本歸檔（CheckWeb/web-crawler）
+├── GVM_Tools/
+│   ├── cve&cpe-v2.py                 # ✅ OpenVAS (GVM) 漏洞查詢工具
+│   └── Old/                          # 📦 歷史版本歸檔
+├── ScanIps/
+│   ├── check_ports.py                # ✅ 單一 IP Web Port 掃描
+│   └── check_ports.sh                # ✅ Shell 啟動腳本
+└── ScanNetworkVlan/
+    ├── check_ports-NetworkSegment-v8.py  # ✅ CIDR 批量 Port 掃描
+    ├── check_ports-NetworkSegment-v8.sh  # ✅ Shell 啟動腳本
+    └── Old/                              # 📦 歷史版本歸檔
+```
+
+### 🔧 核心工具簡介
+
+**1. GVM_Tools (`cve&cpe-v2.py`)**：
+透過 TLS 連線至 OpenVAS，輸入 CVE 或 CPE 編號後，查詢並回傳對應的漏洞資訊。
+
+**2. CheckWeb (`CheckWeb-v5.py`)**：
+運用 Requests 與 Selenium (Headless Chrome) 爬取指定網站及其子網址，並利用關鍵字搜尋（例如特定人名）檢查出現頻率或是否存在。
+
+**3. ScanNetworkVlan (`check_ports-NetworkSegment-v8.py`)**：
+與舊版相同架構，提供將 CIDR 網段展開為全 IP 清單並多執行緒掃描 70+ 種 Web Port。
+
+---
+
+## 4. OnPremise-Web_certificate_check
 
 > 🔐 自動化批量檢查網站 SSL/TLS 憑證有效期限
 
