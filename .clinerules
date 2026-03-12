@@ -1,0 +1,9 @@
+- 永遠使用繁體中文 (Traditional Chinese) 回應。
+- 遵循 Python PEP 8 規範，並在所有函數添加 Type Hints。
+- 當我請求修改程式碼時：
+  1. 先執行 `ls -R` 或讀取檔案結構。
+  2. 使用 `read_file` 確保理解現有邏輯。
+  3. 修改後，若有測試腳本請主動跑 `pytest` 或執行腳本驗證。
+- Git 操作規範：
+  - 嚴禁直接在 `main` 或 `master` 分支 push，除非我授權。
+  - Commit Message 必須使用 Conventional Commits 格式。
